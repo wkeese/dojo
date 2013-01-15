@@ -26,18 +26,7 @@ define(["./_base/kernel", "./_base/lang", "./_base/array", "./_base/declare", ".
 		return cont.replace(/(?:\s*<!DOCTYPE\s[^>]+>|<title[^>]*>[\s\S]*?<\/title>)/ig, ""); // String
 	};
 
-	html._emptyNode = domConstruct.empty;
-	/*=====
-	 dojo.html._emptyNode = function(node){
-		 // summary:
-		 //		Removes all child nodes from the given node.   Deprecated, should use dojo/dom-constuct.empty() directly
-		 //		instead.
-		 // node: DOMNode
-		 //		the parent element
-	 };
-	 =====*/
-
-		html._setNodeContent = function(/*DomNode*/ node, /*String|DomNode|NodeList*/ cont){
+	html._setNodeContent = function(/*DomNode*/ node, /*String|DomNode|NodeList*/ cont){
 		// summary:
 		//		inserts the given content into the given node
 		// node:
