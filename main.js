@@ -8,7 +8,6 @@ define([
 	"./_base/config",
 	"./ready",
 	"./_base/declare",
-	"./_base/connect",
 	"./_base/Deferred",
 	"./_base/json",
 	"./_base/Color",

@@ -1,5 +1,5 @@
-define(["exports", "./_base/kernel", "./sniff", "./_base/lang", "./dom", "./dom-style", "./dom-construct", "./_base/connect"],
-		function(exports, dojo, has, lang, dom, style, ctr, conn){
+define(["exports", "./_base/kernel", "./sniff", "./_base/lang", "./dom", "./dom-style", "./dom-construct", "./on"],
+		function(exports, dojo, has, lang, dom, style, ctr, on){
 	// module:
 	//		dojo/dom-prop
 	// summary:
@@ -158,8 +158,7 @@ define(["exports", "./_base/kernel", "./sniff", "./_base/lang", "./dom", "./dom-
 			}
 			var h = _evtHdlrMap[attrId][propName];
 			if(h){
-				//h.remove();
-				conn.disconnect(h);
+				h.remove();
 			}else{
 				try{
 					delete node[propName];
@@ -167,8 +166,7 @@ define(["exports", "./_base/kernel", "./sniff", "./_base/lang", "./dom", "./dom-
 			}
 			// ensure that event objects are normalized, etc.
 			if(value){
-				//_evtHdlrMap[attrId][propName] = on(node, propName, value);
-				_evtHdlrMap[attrId][propName] = conn.connect(node, propName, value);
+				evtHdlrMap[attrId][propName] = on(node, propName, value);
 			}else{
 				node[propName] = null;
 			}
