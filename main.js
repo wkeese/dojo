@@ -8,7 +8,6 @@ define([
 	"./_base/config",
 	"./ready",
 	"./_base/declare",
-	"./_base/Deferred",
 	"./_base/json",
 	"./_base/Color",
 	"./has!dojo-firebug?./_firebug/firebug",
