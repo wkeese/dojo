@@ -40,8 +40,6 @@
 					this.preambleTestProp++;
 				},
 				intProp: 1,
-				callCount: 0, // for connect testing
-				callInc: function(){ this.callCount++; },
 				callCount2: 0, // for assignment testing
 				strProp1: "original1",
 				strProp2: "original2",
@@ -205,10 +203,6 @@
 				function testDataDojoId(t){
 					t.is("object", typeof obj);
 				},
-				function testJsId(t){
-					// Back-compat test, remove for 2.0
-					t.is("object", typeof obj3);
-				},
 				// Attribute parsing tests
 				function testStrProp(t){
 					// normal string parameter
@@ -307,10 +301,6 @@
 				// test script tags inside innerHTML of source node
 				"t.is(4, obj.preambleTestProp);",
 				"t.is(deepTestProp, obj.deepProp);",
-				function testConnect(t){
-					obj.callInc();
-					t.is(2, obj.callCount);
-				},
 				function testFunctionAssignment(t){
 					obj.callInc2();
 					t.is(1, obj.callCount2);
@@ -341,7 +331,7 @@
 						}
 					});
 
-					domConstruct.create("div", { dojoType:"SampleThinger" }, "parsertest");
+					domConstruct.create("div", { "data-dojo-type":"SampleThinger" }, "parsertest");
 					parser.parse("parsertest", { noStart:true });
 
 					t.f(started, "first started check");
@@ -350,7 +340,7 @@
 
 					started = false;
 
-					domConstruct.create("div", { dojoType:"SampleThinger" }, "parsertest");
+					domConstruct.create("div", { "data-dojo-type":"SampleThinger" }, "parsertest");
 					parser.parse({ noStart:true, rootNode:"parsertest" });
 
 					t.f(started, "second started check");
@@ -376,7 +366,7 @@
 				function cacheRefresh(t){
 					// Add new node to be parsed, referencing a widget that the parser has already
 					// dealt with (and thus cached)
-					var wrapper = domConstruct.place("<div><div dojoType='tests.parser.Class3' newParam=12345>hi</div></div>", win.body(), "last");
+					var wrapper = domConstruct.place("<div><div data-dojo-type='tests.parser.Class3' newParam=12345>hi</div></div>", win.body(), "last");
 
 					// Modify Class3's superclass widget to have new parameter (thus Class3 inherits it)
 					lang.extend(tests.parser.Class2, {
@@ -536,87 +526,94 @@
 
 			doh.register("IE attribute detection", [
 				function input1(){
-					var widgets = parser.instantiate([dom.byId("ieInput1")]);
-					var params = widgets[0].params;
+					return parser.instantiate([dom.byId("ieInput1")]).then(function(widgets){
+						var params = widgets[0].params;
 
-					doh.is("checkbox", params.type, "type");
-					doh.t(params.disabled, "disabled");
-					doh.t(params.checked, "checked");
-					doh.t(params.readonly, "readonly");
-					doh.is("bar", params.foo, "foo");
-					doh.is("zaz", params.bar, "bar");
-					doh.is("escaped\"dq", params.bob, "bob");
-					doh.is("escaped\'sq", params.frank, "frank");
-					//doh.f("value" in params, "value not specified");	// fails in IE8, thinks value=="on"
+						doh.is("checkbox", params.type, "type");
+						doh.t(params.disabled, "disabled");
+						doh.t(params.checked, "checked");
+						doh.t(params.readonly, "readonly");
+						doh.is("bar", params.foo, "foo");
+						doh.is("zaz", params.bar, "bar");
+						doh.is("escaped\"dq", params.bob, "bob");
+						doh.is("escaped\'sq", params.frank, "frank");
+						//doh.f("value" in params, "value not specified");	// fails in IE8, thinks value=="on"
+					});
 				},
 				function input2(){
-					var widgets = parser.instantiate([dom.byId("ieInput2")]);
-					var params = widgets[0].params;
+					return parser.instantiate([dom.byId("ieInput2")]).then(function(widgets){
+						var params = widgets[0].params;
 
-					doh.f("type" in params, "type");
-					doh.f("name" in params, "name");
-					doh.f("value" in params, "value");
-					doh.f("data-dojo-type" in params, "data-dojo-type");
-					doh.f("data-dojo-props" in params, "data-dojo-props");
-					doh.is("hi", params.foo, "foo");
-					doh.f("value" in params, "value not specified");
+						doh.f("type" in params, "type");
+						doh.f("name" in params, "name");
+						doh.f("value" in params, "value");
+						doh.f("data-dojo-type" in params, "data-dojo-type");
+						doh.f("data-dojo-props" in params, "data-dojo-props");
+						doh.is("hi", params.foo, "foo");
+						doh.f("value" in params, "value not specified");
+					});
 				},
 				function input3(){
-					var widgets = parser.instantiate([dom.byId("ieInput3")]);
-					var params = widgets[0].params;
+					return parser.instantiate([dom.byId("ieInput3")]).then(function(widgets){
+						var params = widgets[0].params;
 
-					doh.is("password", params.type, "type");
-					doh.is("test", params.name, "name");
-					doh.is("123", params.value, "value");
-					doh.is("myClass", params["class"], "class");
-					doh.is("display:block", params["style"].replace(/[ ;]/g, "").toLowerCase(), "style");
-					doh.is("3", params.tabIndex, "tabIndex");
+						doh.is("password", params.type, "type");
+						doh.is("test", params.name, "name");
+						doh.is("123", params.value, "value");
+						doh.is("myClass", params["class"], "class");
+						doh.is("display:block", params["style"].replace(/[ ;]/g, "").toLowerCase(), "style");
+						doh.is("3", params.tabIndex, "tabIndex");
+					});
 				},
 				function textarea(){
-					var widgets = parser.instantiate([dom.byId("ieTextarea")]);
-					var params = widgets[0].params;
-
-					doh.is("attrVal", params.value, "value");
+					return parser.instantiate([dom.byId("ieTextarea")]).then(function(widgets){
+						var params = widgets[0].params;
+						doh.is("attrVal", params.value, "value");
+					});
 				},
 				function button1(){
-					var widgets = parser.instantiate([dom.byId("ieButton1")]);
-					var params = widgets[0].params;
-					doh.t(params.checked, "checked");
-					doh.is("button1val", params.value, "value");
+					return parser.instantiate([dom.byId("ieInput2")]).then(function(widgets){
+						var params = widgets[0].params;
+						doh.t(params.checked, "checked");
+						doh.is("button1val", params.value, "value");
+					});
 				},
 				function button2(){
-					var widgets = parser.instantiate([dom.byId("ieButton2")]);
-					var params = widgets[0].params;
-					doh.f("checked" in params, "checked");
-					doh.f("value" in params, "value");
+					return parser.instantiate([dom.byId("ieInput2")]).then(function(widgets){
+						var params = widgets[0].params;
+						doh.f("checked" in params, "checked");
+						doh.f("value" in params, "value");
+					});
 				},
 				function button3(){
-					var widgets = parser.instantiate([dom.byId("ieButton3")]);
-					var params = widgets[0].params;
-					doh.t(params.checked, "checked");
+					return parser.instantiate([dom.byId("ieInput2")]).then(function(widgets){
+						var params = widgets[0].params;
+						doh.t(params.checked, "checked");
+					});
 				},
 				function button4(){
-					var widgets = parser.instantiate([dom.byId("ieButton4")]);
-					var params = widgets[0].params;
-					doh.f("checked" in params);
+					return parser.instantiate([dom.byId("ieButton4")]).then(function(widgets){
+						var params = widgets[0].params;
+						doh.f("checked" in params);
+					});
 				},
 				function form1(){
-					var widgets = parser.instantiate([dom.byId("ieForm1")]);
-					var params = widgets[0].params;
-
-					doh.is("foo", params.encType, "encType is specified");
+					return parser.instantiate([dom.byId("ieForm1")]).then(function(widgets){
+						var params = widgets[0].params;
+						doh.is("foo", params.encType, "encType is specified");
+					});
 				},
 				function form2(){
-					var widgets = parser.instantiate([dom.byId("ieForm2")]);
-					var params = widgets[0].params;
-
-					doh.f("encType" in params, "encType not specified")
+					return parser.instantiate([dom.byId("ieForm2")]).then(function(widgets){
+						var params = widgets[0].params;
+						doh.f("encType" in params, "encType not specified")
+					});
 				},
 				function li(){
-					var widgets = parser.instantiate([dom.byId("li")]);
-					var params = widgets[0].params;
-					doh.is("home", params.value);
-
+					return parser.instantiate([dom.byId("li")]).then(function(widgets){
+						var params = widgets[0].params;
+						doh.is("home", params.value);
+					});
 				}
 			]);
 
@@ -797,7 +794,7 @@
 			<script>
 				function foo(){ this.fooCalled=true; }
 			</script>
-			<div dojoType="tests.parser.Class1" data-dojo-id="obj"
+			<div data-dojo-type="tests.parser.Class1" data-dojo-id="obj"
 				 strProp1="text" strProp2=""
 				 intProp="5"
 				 arrProp="foo, bar, baz"
@@ -813,50 +810,47 @@
 					// this should be run immediately
 					this.deepProp = deepTestProp;
 				</script>
-				<script type="dojo/connect" data-dojo-event="callInc">
-					this.callCount++;
-				</script>
 				<script type="dojo/method" data-dojo-event="callInc2">
 					this.callCount2++;
 				</script>
 			</div>
-			<div dojoType="tests.parser.Class2" jsId="obj3">
+			<div data-dojo-type="tests.parser.Class2" data-dojo-id="obj3">
 			</div>
-			<div dojoType="tests.parser.Class3" data-dojo-id="obj4">
+			<div data-dojo-type="tests.parser.Class3" data-dojo-id="obj4">
 			</div>
-			<input dojoType="tests.parser.InputClass" data-dojo-id="checkedObj" checked type="checkbox">
-			<button dojoType="tests.parser.InputClass" data-dojo-id="disabledObj" disabled>hi</button>
+			<input data-dojo-type="tests.parser.InputClass" data-dojo-id="checkedObj" checked type="checkbox">
+			<button data-dojo-type="tests.parser.InputClass" data-dojo-id="disabledObj" disabled>hi</button>
 
 			<div id="parsertest"></div>
 			<div id="parsertest2"></div>
 
 			<!-- section for testing parser recursion -->
 			<div>
-				<div dojoType="tests.parser.NormalContainer" data-dojo-id="container1">
+				<div data-dojo-type="tests.parser.NormalContainer" data-dojo-id="container1">
 					<!-- this script tag should get passed as param to NormalContainer constructor -->
 					<script type="dojo/method" data-dojo-event="incr" data-dojo-args="x">
 						return x+1;
 					</script>
 
 					<!-- and these contained widgets should get instantiated -->
-					<div dojoType="tests.parser.Class1" data-dojo-id="contained1"></div>
+					<div data-dojo-type="tests.parser.Class1" data-dojo-id="contained1"></div>
 					<div>
-						<div dojoType="tests.parser.Class1" data-dojo-id="contained2"></div>
+						<div data-dojo-type="tests.parser.Class1" data-dojo-id="contained2"></div>
 					</div>
 				</div>
 			</div>
 
 			<div>
-				<div dojoType="tests.parser.ShieldedContainer" data-dojo-id="container2">
+				<div data-dojo-type="tests.parser.ShieldedContainer" data-dojo-id="container2">
 					<!-- this script tag should get passed as param to ShieldedContainer constructor -->
 					<script type="dojo/method" data-dojo-event="incr" data-dojo-args="x">
 						return x+1;
 					</script>
 
 					<!-- but these contained widgets should *not* get instantiated -->
-					<div dojoType="tests.parser.Class1" data-dojo-id="contained3"></div>
+					<div data-dojo-type="tests.parser.Class1" data-dojo-id="contained3"></div>
 					<div>
-						<div dojoType="tests.parser.Class1" data-dojo-id="contained4"></div>
+						<div data-dojo-type="tests.parser.Class1" data-dojo-id="contained4"></div>
 					</div>
 				</div>
 			</div>
@@ -963,35 +957,35 @@
 
 		<!-- section for testing that dir, lang attribute trickles down from ancestor -->
 		<div id="dirSection1">
-			<div dojoType="tests.parser.BidiClass" data-dojo-id="setRtl" dir="rtl" name="RTL setting"></div>
-			<div dojoType="tests.parser.BidiClass" data-dojo-id="noDir" name="dir not inherited or set"></div>
+			<div data-dojo-type="tests.parser.BidiClass" data-dojo-id="setRtl" dir="rtl" name="RTL setting"></div>
+			<div data-dojo-type="tests.parser.BidiClass" data-dojo-id="noDir" name="dir not inherited or set"></div>
 		</div>
 		<div id="dirSection2" dir="rtl">
-			<div dojoType="tests.parser.BidiClass" data-dojo-id="inheritRtl" name="inherited RTL from parent"></div>
+			<div data-dojo-type="tests.parser.BidiClass" data-dojo-id="inheritRtl" name="inherited RTL from parent"></div>
 			<div dir="ltr">
-				<div dojoType="tests.parser.BidiClass" data-dojo-id="inheritLtr" name="inherited LTR from parent"></div>
+				<div data-dojo-type="tests.parser.BidiClass" data-dojo-id="inheritLtr" name="inherited LTR from parent"></div>
 			</div>
 			<div>
-				<div dojoType="tests.parser.BidiClass" data-dojo-id="inheritRtl2" name="inherited RTL from grandparent"></div>
+				<div data-dojo-type="tests.parser.BidiClass" data-dojo-id="inheritRtl2" name="inherited RTL from grandparent"></div>
 			</div>
-			<div dojoType="tests.parser.BidiClass" data-dojo-id="setLtr" dir="ltr" name="LTR setting overrides inherited RTL"></div>
+			<div data-dojo-type="tests.parser.BidiClass" data-dojo-id="setLtr" dir="ltr" name="LTR setting overrides inherited RTL"></div>
 		</div>
 		<div id="langSection">
-			<div dojoType="tests.parser.BidiClass" data-dojo-id="noLang" name="shouldn't get lang"></div>
+			<div data-dojo-type="tests.parser.BidiClass" data-dojo-id="noLang" name="shouldn't get lang"></div>
 			<div lang="it_it">
-				<div dojoType="tests.parser.BidiClass" data-dojo-id="inheritedLang" name="inherited lang from parent"></div>
-				<div dojoType="tests.parser.BidiClass" data-dojo-id="specifiedLang" lang="en_us" name="specified lang overrides parent"></div>
+				<div data-dojo-type="tests.parser.BidiClass" data-dojo-id="inheritedLang" name="inherited lang from parent"></div>
+				<div data-dojo-type="tests.parser.BidiClass" data-dojo-id="specifiedLang" lang="en_us" name="specified lang overrides parent"></div>
 			</div>
 		</div>
 		<div id="textDirSection">
-			<div dojoType="tests.parser.BidiClass" data-dojo-id="noTextdir" name="shouldn't get textdir"></div>
+			<div data-dojo-type="tests.parser.BidiClass" data-dojo-id="noTextdir" name="shouldn't get textdir"></div>
 			<div data-dojo-textdir="rtl">
-				<div dojoType="tests.parser.BidiClass" data-dojo-id="inheritedTextdir" name="inherited textdir from parent"></div>
-				<div dojoType="tests.parser.BidiClass" data-dojo-id="specifiedTextdir" data-dojo-textdir="ltr" name="specified textdir overrides parent"></div>
+				<div data-dojo-type="tests.parser.BidiClass" data-dojo-id="inheritedTextdir" name="inherited textdir from parent"></div>
+				<div data-dojo-type="tests.parser.BidiClass" data-dojo-id="specifiedTextdir" data-dojo-textdir="ltr" name="specified textdir overrides parent"></div>
 			</div>
 		</div>
 		<div id="bidiInheritanceFromHtml">
-			<div dojoType="tests.parser.BidiClass" data-dojo-id="inheritedFromHtml" name="should get dir/lang/textDir from HTML tag"></div>
+			<div data-dojo-type="tests.parser.BidiClass" data-dojo-id="inheritedFromHtml" name="should get dir/lang/textDir from HTML tag"></div>
 		</div>
 
 		<!-- tests that we can parse parameters correctly on IE6/7, not getting tripped up by escaped quotes etc. -->
@@ -1017,11 +1011,11 @@
 			</div>
 			<form id="ieForm1" data-dojo-type="tests.parser.FormClass" encType="foo"></form>
 			<form id="ieForm2" data-dojo-type="tests.parser.FormClass"></form>
-			<ul dojoType="tests.parser.Widget" class="nav">
-				<li id="li" dojoType="tests.parser.Widget" value="home">Home</li>
-				<li dojoType="tests.parser.Widget" value="contact">Contact</li>
-				<li dojoType="tests.parser.Widget" value="group">Group</li>
-				<li dojoType="tests.parser.Widget" value="campaign">Campaign</li>
+			<ul data-dojo-type="tests.parser.Widget" class="nav">
+				<li id="li" data-dojo-type="tests.parser.Widget" value="home">Home</li>
+				<li data-dojo-type="tests.parser.Widget" value="contact">Contact</li>
+				<li data-dojo-type="tests.parser.Widget" value="group">Group</li>
+				<li data-dojo-type="tests.parser.Widget" value="campaign">Campaign</li>
 			</ul>
 		</div>
 
@@ -1033,12 +1027,12 @@
 
 		<!-- tests for function names native to HTML, specifically an issue on IE<8 -->
 		<div id="functions">
-			<button dojoType="tests.parser.Button" onClick="buttonClicked" data-dojo-id="button">Click me</button>
+			<button data-dojo-type="tests.parser.Button" onClick="buttonClicked" data-dojo-id="button">Click me</button>
 		</div>
 
 		<!-- section for testing parser.instantiate() -->
 		<div id="instantiate1">
-			<div dojoType="tests.parser.Class1" data-dojo-id="objI1" id="objId1"
+			<div data-dojo-type="tests.parser.Class1" data-dojo-id="objI1" id="objId1"
 				 strProp1="text" strProp2=""
 				 intProp="5"
 				 arrProp="foo, bar, baz"
@@ -1064,9 +1058,9 @@
 					funcProp3:'this.func3Called=true;'"
 			>
 			</div>
-			<div dojoType="tests.parser.NormalContainer" data-dojo-id="contI1" id ="contId1">
-				<div dojoType="tests.parser.Class1" data-dojo-id="objI3" id="objId3"></div>
-				<div dojoType="tests.parser.Class1" data-dojo-id="objI4" id="objId4"></div>
+			<div data-dojo-type="tests.parser.NormalContainer" data-dojo-id="contI1" id ="contId1">
+				<div data-dojo-type="tests.parser.Class1" data-dojo-id="objI3" id="objId3"></div>
+				<div data-dojo-type="tests.parser.Class1" data-dojo-id="objI4" id="objId4"></div>
 			</div>
 		</div>
 

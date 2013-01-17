@@ -1,7 +1,7 @@
 define([
 	"require", "./_base/kernel", "./_base/lang", "./_base/array", "./_base/config", "./dom", "./_base/window",
-		"./_base/url", "./aspect", "./promise/all", "./date/stamp", "./Deferred", "./has", "./query", "./on", "./ready"
-], function(require, dojo, dlang, darray, config, dom, dwindow, _Url, aspect, all, dates, Deferred, has, query, don, ready){
+		"./_base/url", "./aspect", "./promise/all", "./date/stamp", "./Deferred", "./has", "./query", "./on",
+], function(require, dojo, dlang, darray, config, dom, dwindow, _Url, aspect, all, dates, Deferred, has, query, don){
 
 	// module:
 	//		dojo/parser
@@ -55,9 +55,8 @@ define([
 			var mixins = [];
 			for(var i = 0, l = types.length; i < l; i++){
 				var t = types[i];
-				// TODO: Consider swapping getObject and require in the future
-				mixins[mixins.length] = (_ctorMap[t] = _ctorMap[t] || (dlang.getObject(t) || (~t.indexOf('/') &&
-					(contextRequire ? contextRequire(t) : require(t)))));
+				mixins[mixins.length] = (_ctorMap[t] = _ctorMap[t] || ((~t.indexOf('/') &&
+					(contextRequire ? contextRequire(t) : require(t)))) || dlang.getObject(t));
 			}
 			var ctor = mixins.shift();
 			_ctorMap[ts] = mixins.length ? (ctor.createSubclass ? ctor.createSubclass(mixins) : ctor.extend.apply(ctor, mixins)) : ctor;
@@ -77,18 +76,15 @@ define([
 			_ctorMap = {};
 		},
 
-		_functionFromScript: function(script, attrData){
+		_functionFromScript: function(script){
 			// summary:
 			//		Convert a `<script type="dojo/method" args="a, b, c"> ... </script>`
 			//		into a function
 			// script: DOMNode
 			//		The `<script>` DOMNode
-			// attrData: String
-			//		For HTML5 compliance, searches for attrData + "args" (typically
-			//		"data-dojo-args") instead of "args"
 			var preamble = "",
 				suffix = "",
-				argsStr = (script.getAttribute(attrData + "args") || script.getAttribute("args")),
+				argsStr = script.getAttribute("data-dojo-args"),
 				withStr = script.getAttribute("with");
 
 			// Convert any arguments supplied in script tag into an array to be passed to the
@@ -124,14 +120,12 @@ define([
 			mixin = mixin || {};
 			options = options || {};
 
-			var dojoType = (options.scope || dojo._scopeName) + "Type", // typically "dojoType"
-				attrData = "data-" + (options.scope || dojo._scopeName) + "-", // typically "data-dojo-"
-				dataDojoType = attrData + "type", // typically "data-dojo-type"
-				dataDojoMixins = attrData + "mixins";					// typically "data-dojo-mixins"
+			var dataDojoType = "data-dojo-type",
+				dataDojoMixins = "data-dojo-mixins";
 
 			var list = [];
 			darray.forEach(nodes, function(node){
-				var type = dojoType in mixin ? mixin[dojoType] : node.getAttribute(dataDojoType) || node.getAttribute(dojoType);
+				var type = dataDojoType in mixin ? mixin[dataDojoType] : node.getAttribute(dataDojoType);
 				if(type){
 					var mixinsValue = node.getAttribute(dataDojoMixins),
 						types = mixinsValue ? [type].concat(mixinsValue.split(/\s*,\s*/)) : [type];
@@ -147,7 +141,7 @@ define([
 			return this._instantiate(list, mixin, options);
 		},
 
-		_instantiate: function(nodes, mixin, options, returnPromise){
+		_instantiate: function(nodes, mixin, options){
 			// summary:
 			//		Takes array of objects representing nodes, and turns them into class instances and
 			//		potentially calls a startup method to allow them to connect with
@@ -168,11 +162,8 @@ define([
 			// options: Object
 			//		An options object used to hold kwArgs for instantiation.
 			//		See parse.options argument for details.
-			// returnPromise: Boolean
-			//		Return a Promise rather than the instance; supports asynchronous widget creation.
 			// returns:
-			//		Array of instances, or if returnPromise is true, a promise for array of instances
-			//		that resolves when instances have finished initializing.
+			//		A promise for array of instances that resolves when instances have finished initializing.
 
 			// Call widget constructors.   Some may be asynchronous and return promises.
 			var thelist = darray.map(nodes, function(obj){
@@ -198,12 +189,7 @@ define([
 				return thelist;
 			}
 
-			if(returnPromise){
-				return all(thelist).then(onConstruct);
-			}else{
-				// Back-compat path, remove for 2.0
-				return onConstruct(thelist);
-			}
+			return all(thelist).then(onConstruct);
 		},
 
 		construct: function(ctor, node, mixin, options, scripts, inherited){
@@ -270,19 +256,6 @@ define([
 				});
 			}
 
-			// Hash to convert scoped attribute name (ex: data-dojo17-params) to something friendly (ex: data-dojo-params)
-			// TODO: remove scope for 2.0
-			var scope = options.scope || dojo._scopeName,
-				attrData = "data-" + scope + "-", // typically "data-dojo-"
-				hash = {};
-			if(scope !== "dojo"){
-				hash[attrData + "props"] = "data-dojo-props";
-				hash[attrData + "type"] = "data-dojo-type";
-				hash[attrData + "mixins"] = "data-dojo-mixins";
-				hash[scope + "type"] = "dojoType";
-				hash[attrData + "id"] = "data-dojo-id";
-			}
-
 			// Read in attributes and process them, including data-dojo-props, data-dojo-type,
 			// dojoAttachPoint, etc., as well as normal foo=bar attributes.
 			var i = 0, item, funcAttrs = [], jsname, extra;
@@ -291,10 +264,9 @@ define([
 					lcName = name.toLowerCase(),
 					value = item.value;
 
-				switch(hash[lcName] || lcName){
+				switch(lcName){
 				// Already processed, just ignore
 				case "data-dojo-type":
-				case "dojotype":
 				case "data-dojo-mixins":
 					break;
 
@@ -303,19 +275,16 @@ define([
 					extra = value;
 					break;
 
-				// data-dojo-id or jsId. TODO: drop jsId in 2.0
+				// data-dojo-id
 				case "data-dojo-id":
-				case "jsid":
 					jsname = value;
 					break;
 
 				// For the benefit of _Templated
 				case "data-dojo-attach-point":
-				case "dojoattachpoint":
 					params.dojoAttachPoint = value;
 					break;
 				case "data-dojo-attach-event":
-				case "dojoattachevent":
 					params.dojoAttachEvent = value;
 					break;
 
@@ -408,8 +377,7 @@ define([
 			// <script type="dojo/method" data-dojo-event="foo"> tags are added to params, and passed to
 			// the widget on instantiation.
 			// <script type="dojo/method"> tags (with no event) are executed after instantiation
-			// <script type="dojo/connect" data-dojo-event="foo"> tags are dojo.connected after instantiation,
-			// and likewise with <script type="dojo/aspect" data-dojo-method="foo">
+			// <script type="dojo/aspect" data-dojo-method="foo"> are connected after instantiation
 			// <script type="dojo/watch" data-dojo-prop="foo"> tags are dojo.watch after instantiation
 			// <script type="dojo/on" data-dojo-event="foo"> tags are dojo.on after instantiation
 			// note: dojo/* script tags cannot exist in self closing widgets, like <input />
@@ -422,17 +390,14 @@ define([
 				for(i = 0; i < scripts.length; i++){
 					var script = scripts[i];
 					node.removeChild(script);
-					// FIXME: drop event="" support in 2.0. use data-dojo-event="" instead
-					var event = (script.getAttribute(attrData + "event") || script.getAttribute("event")),
-						prop = script.getAttribute(attrData + "prop"),
-						method = script.getAttribute(attrData + "method"),
-						advice = script.getAttribute(attrData + "advice"),
+					var event = script.getAttribute("data-dojo-event"),
+						prop = script.getAttribute("data-dojo-prop"),
+						method = script.getAttribute("data-dojo-method"),
+						advice = script.getAttribute("data-dojo-advice"),
 						scriptType = script.getAttribute("type"),
-						nf = this._functionFromScript(script, attrData);
+						nf = this._functionFromScript(script);
 					if(event){
-						if(scriptType == "dojo/connect"){
-							aspects.push({ method: event, func: nf });
-						}else if(scriptType == "dojo/on"){
+						if(scriptType == "dojo/on"){
 							ons.push({ event: event, func: nf });
 						}else{
 							// <script type="dojo/method" data-dojo-event="foo">
@@ -490,7 +455,7 @@ define([
 			// description:
 			//		Search specified node (or document root node) recursively for class instances
 			//		and return an array of objects that represent potential widgets to be
-			//		instantiated. Searches for either data-dojo-type="MID" or dojoType="MID" where
+			//		instantiated. Searches for either data-dojo-type="MID" where
 			//		"MID" is a module ID like "dijit/form/Button" or a fully qualified Class name
 			//		like "dijit/form/Button".  If the MID is not currently available, scan will
 			//		attempt to require() in the module.
@@ -511,11 +476,9 @@ define([
 				mids = [], // An array of modules that are not yet loaded
 				midsHash = {}; // Used to keep the mids array unique
 
-			var dojoType = (options.scope || dojo._scopeName) + "Type", // typically "dojoType"
-				attrData = "data-" + (options.scope || dojo._scopeName) + "-", // typically "data-dojo-"
-				dataDojoType = attrData + "type", // typically "data-dojo-type"
-				dataDojoTextDir = attrData + "textdir", // typically "data-dojo-textdir"
-				dataDojoMixins = attrData + "mixins";					// typically "data-dojo-mixins"
+			var dataDojoType = "data-dojo-type", // typically "data-dojo-type"
+				dataDojoTextDir = "data-dojo-textdir", // typically "data-dojo-textdir"
+				dataDojoMixins = "data-dojo-mixins";					// typically "data-dojo-mixins"
 
 			// Info on DOMNode currently being processed
 			var node = root.firstChild;
@@ -613,9 +576,8 @@ define([
 					continue;
 				}
 
-				// Check for data-dojo-type attribute, fallback to backward compatible dojoType
-				// TODO: Remove dojoType in 2.0
-				var type = node.getAttribute(dataDojoType) || node.getAttribute(dojoType);
+				// Check for data-dojo-type attribute
+				var type = node.getAttribute(dataDojoType);
 
 				// Short circuit for leaf nodes containing nothing [but text]
 				var firstChild = node.firstChild;
@@ -629,7 +591,7 @@ define([
 
 				var ctor = null;
 				if(type){
-					// If dojoType/data-dojo-type specified, add to output array of nodes to instantiate.
+					// If data-dojo-type specified, add to output array of nodes to instantiate.
 					var mixinsValue = node.getAttribute(dataDojoMixins),
 						types = mixinsValue ? [type].concat(mixinsValue.split(/\s*,\s*/)) : [type];
 
@@ -672,7 +634,7 @@ define([
 				}
 
 				// Recurse, collecting <script type="dojo/..."> children, and also looking for
-				// descendant nodes with dojoType specified (unless the widget has the stopParser flag).
+				// descendant nodes with data-dojo-type specified (unless the widget has the stopParser flag).
 				// When finished with children, go to my next sibling.
 				scripts = childScripts;
 				scriptsOnly = node.stopParser || (ctor && ctor.prototype.stopParser && !(options.template));
@@ -794,20 +756,13 @@ define([
 			//		Scan the DOM for class instances, and instantiate them.
 			// description:
 			//		Search specified node (or root node) recursively for class instances,
-			//		and instantiate them. Searches for either data-dojo-type="Class" or
-			//		dojoType="Class" where "Class" is a a fully qualified class name,
-			//		like `dijit/form/Button`
+			//		and instantiate them. Searches for data-dojo-type="Class"
+			//		where "Class" is a a fully qualified class name, like `dijit/form/Button`
 			//
 			//		Using `data-dojo-type`:
 			//		Attributes using can be mixed into the parameters used to instantiate the
 			//		Class by using a `data-dojo-props` attribute on the node being converted.
 			//		`data-dojo-props` should be a string attribute to be converted from JSON.
-			//
-			//		Using `dojoType`:
-			//		Attributes are read from the original domNode and converted to appropriate
-			//		types by looking up the Class prototype values. This is the default behavior
-			//		from Dojo 1.0 to Dojo 1.5. `dojoType` support is deprecated, and will
-			//		go away in Dojo 2.0.
 			// rootNode: DomNode?
 			//		A default starting root node from which to start the parsing. Can be
 			//		omitted, defaulting to the entire document. If omitted, the `options`
@@ -829,11 +784,6 @@ define([
 			//		- inherited: Object:
 			//			Hash possibly containing dir and lang settings to be applied to
 			//			parsed widgets, unless there's another setting on a sub-node that overrides
-			//		- scope: String:
-			//			Root for attribute names to search for.   If scopeName is dojo,
-			//			will search for data-dojo-type (or dojoType).   For backwards compatibility
-			//			reasons defaults to dojo._scopeName (which is "dojo" except when
-			//			multi-version support is used, when it will be something like dojo16, dojo20, etc.)
 			//		- propsThis: Object:
 			//			If specified, "this" referenced from data-dojo-props will refer to propsThis.
 			//			Intended for use from the widgets-in-template feature of `dijit._WidgetsInTemplateMixin`
@@ -877,7 +827,6 @@ define([
 			options = options || {};
 
 			var mixin = options.template ? { template: true } : {},
-				instances = [],
 				self = this;
 
 			// First scan for any <script type=dojo/require> nodes, and execute.
@@ -885,35 +834,22 @@ define([
 			// Then build the object instances.  Add instances to already existing (but empty) instances[] array,
 			// which may already have been returned to caller.  Also, use otherwise to collect and throw any errors
 			// that occur during the parse().
-			var p =
-				this._scanAmd(root, options).then(function(){
-					return self.scan(root, options);
-				}).then(function(parsedNodes){
-					return self._instantiate(parsedNodes, mixin, options, true);
-				}).then(function(_instances){
-					// Copy the instances into the instances[] array we declared above, and are accessing as
-					// our return value.
-					return instances = instances.concat(_instances);
-				}).otherwise(function(e){
-					// TODO Modify to follow better pattern for promise error management when available
-					console.error("dojo/parser::parse() error", e);
-					throw e;
-				});
-
-			// Blend the array with the promise
-			dlang.mixin(instances, p);
-			return instances;
+			return this._scanAmd(root, options).then(function(){
+				return self.scan(root, options);
+			}).then(function(parsedNodes){
+				return self._instantiate(parsedNodes, mixin, options);
+			}).otherwise(function(e){
+				// TODO Modify to follow better pattern for promise error management when available
+				console.error("dojo/parser::parse() error", e);
+				throw e;
+			});
 		}
 	};
-
-	if(has("extend-dojo")){
-		dojo.parser = parser;
-	}
 
 	// Register the parser callback. It should be the first callback
 	// after the a11y test.
 	if(config.parseOnLoad){
-		ready(100, parser, "parse");
+		domReady(lang.hitch(parser, "parse"));
 	}
 
 	return parser;
