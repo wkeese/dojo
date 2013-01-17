@@ -6,7 +6,6 @@ define([
 	"./kernel",
 	"./unload",
 	"./window",
-	"./xhr",
 	"./fx"], function(dojo){
 
 	// module:

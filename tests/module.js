@@ -31,8 +31,6 @@ define([
 	"dojo/has!host-browser?dojo/tests/parser",
 	"dojo/has!host-browser?dojo/tests/html",
 	"dojo/has!host-browser?dojo/tests/fx",
-	"dojo/has!host-browser?dojo/tests/io/script",
-	"dojo/has!host-browser?dojo/tests/io/iframe",
 	"dojo/has!host-browser?dojo/tests/back-hash",
 	"dojo/has!host-browser?dojo/tests/hash",
 	"dojo/has!host-browser?dojo/tests/rpc",
