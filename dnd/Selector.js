@@ -1,6 +1,6 @@
 define([
 	"../_base/array", "../_base/declare", "../_base/kernel", "../_base/lang",
-	"../dom", "../dom-construct", "../mouse", "../_base/NodeList", "../on", "../touch", "./common", "./Container"
+	"../dom", "../dom-construct", "../mouse", "../NodeList", "../on", "../touch", "./common", "./Container"
 ], function(array, declare, kernel, lang, dom, domConstruct, mouse, NodeList, on, touch, dnd, Container){
 
 // module:

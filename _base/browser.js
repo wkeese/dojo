@@ -6,8 +6,6 @@ define([
 	"./kernel",
 	"./unload",
 	"./window",
-	"./NodeList",
-	"../query",
 	"./xhr",
 	"./fx"], function(dojo){
 
