@@ -6,7 +6,6 @@ define([
 	"./kernel",
 	"./unload",
 	"./window",
-	"./html",
 	"./NodeList",
 	"../query",
 	"./xhr",
