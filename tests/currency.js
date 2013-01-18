@@ -25,38 +25,21 @@ define(["doh/main", "require", "../currency", "../i18n"], function(doh, require,
 		doh.t(isNaN(currency.parse("$1,234", {currency: "USD", fractional: true, locale: "en-us"})));
 	};
 
-	if(require.async){
-		require(["../_base/array",  "../i18n"], function(array){
-			doh.register("tests.currency", {
-				name: "currency",
-				timeout: 2000,
-				runTest: function(t){
-					var
-						def = new doh.Deferred(),
-						deps= [];
-					array.forEach(["en-us", "en-ca", "de-de"], function(locale){
-						deps.push(i18n.getL10nName("dojo/cldr", "currency", locale));
-						deps.push(i18n.getL10nName("dojo/cldr", "number", locale));
-					});
-					require(deps, def.getTestCallback(runTest));
-					return def;
-				}
-			});
-		});
-	}else{ // tests for the v1.x loader/i18n machinery
+	require(["../_base/array",  "../i18n"], function(array){
 		doh.register("tests.currency", {
-			// Test formatting and parsing of currencies in various locales pre-built in dojo.cldr
-			// NOTE: we can't set djConfig.extraLocale before bootstrapping unit tests, so directly
-			// load resources here for specific locales:
 			name: "currency",
-			setUp: function(){
-				var partLocaleList = ["en-us", "en-ca", "de-de"];
-				for(var i = 0 ; i < partLocaleList.length; i ++){
-					dojo.requireLocalization("dojo.cldr","currency",partLocaleList[i]);
-					dojo.requireLocalization("dojo.cldr","number",partLocaleList[i]);
-				}
-			},
-			runTest: runTest
+			timeout: 2000,
+			runTest: function(t){
+				var
+					def = new doh.Deferred(),
+					deps= [];
+				array.forEach(["en-us", "en-ca", "de-de"], function(locale){
+					deps.push(i18n.getL10nName("dojo/cldr", "currency", locale));
+					deps.push(i18n.getL10nName("dojo/cldr", "number", locale));
+				});
+				require(deps, def.getTestCallback(runTest));
+				return def;
+			}
 		});
-	}
+	});
 });

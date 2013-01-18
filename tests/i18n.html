@@ -54,14 +54,6 @@
 
 			doh.run();
 		});
-		if(!require.async){
-			dojo.requireLocalization("dojo.tests._base.loader", "syncBundle", "ab-cd-ef");
-			dojo.requireLocalization("dojo.tests._base.loader", "amdBundle", "ab-cd-ef");
-			doh.register(function oldAndNewBundleStyles(t){
-				t.is(dojo.i18n.getLocalization("dojo.tests._base.loader", "syncBundle", "ab-cd-ef").syncBundle, "syncBundle-ab-cd-ef");
-				t.is(dojo.i18n.getLocalization("dojo.tests._base.loader", "amdBundle", "ab-cd-ef").amdBundle, "amdBundle-ab-cd-ef");
-			});
-		}
 
 		</script>
 	</head>
