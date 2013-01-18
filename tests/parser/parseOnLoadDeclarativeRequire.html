@@ -1,14 +1,14 @@
 <!DOCTYPE html>
 <html>
 	<head>
-		<title>parseOnLoad:true, async:false unit test</title>
+		<title>parseOnLoad declarative require unit test</title>
 		<style type="text/css">
 			@import "../../resources/dojo.css";
 		</style>
-		<script type="text/javascript" src="../../dojo.js" data-dojo-config="isDebug:true, parseOnLoad: true"></script>
+		<script type="text/javascript" src="../../dojo.js" data-dojo-config="isDebug:true"></script>
 		<script type="text/javascript">
-			require(["doh", "dojo/ready"], function(doh, ready){
-				ready(function(){
+			require(["doh", "dojo/parser", "dojo/domReady!"], function(doh, parser){
+				parser.parse().then(function(){
 					doh.register("parseOnLoad declarative-require", function parseOnLoad(){
 						doh.is("object", typeof dr1, "dr1 created");
 						doh.is("bar", dr1.params.foo, "dr1 parameters set on instantiation");
@@ -26,7 +26,7 @@
 		</script>
 	</head>
 	<body>
-		<h1>parseOnLoad:true, async:false unit test</h1>
+		<h1>parseOnLoad declarative require unit test</h1>
 
 		<p>This page tests that:</p>
 		<ol>

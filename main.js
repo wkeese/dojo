@@ -6,7 +6,6 @@ define([
 	"./_base/lang",
 	"./_base/array",
 	"./_base/config",
-	"./ready",
 	"./_base/declare",
 	"./_base/Color",
 	"./has!host-browser?./_base/browser",

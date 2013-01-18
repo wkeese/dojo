@@ -17,15 +17,6 @@ define(['./has'], function(has){
 		domReady(load);
 	};
 
-	// Export queue so that ready() can check if it's empty or not.
-	domReady._Q = readyQ;
-	domReady._onQEmpty = function(){
-		// summary:
-		//		Private method overridden by dojo/ready, to notify when everything in the
-		//		domReady queue has been processed.  Do not use directly.
-		//		Will be removed in 2.0, along with domReady._Q.
-	};
-
 	// For FF <= 3.5
 	if(fixReadyState){ doc.readyState = "loading"; }
 
@@ -44,10 +35,6 @@ define(['./has'], function(has){
 		}
 
 		recursiveGuard = false;
-
-		// Notification for dojo/ready.  Remove for 2.0.
-		// Note that this could add more tasks to the ready queue.
-		domReady._onQEmpty();
 	}
 
 	if(!ready){

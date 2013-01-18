@@ -849,7 +849,7 @@ define([
 	// Register the parser callback. It should be the first callback
 	// after the a11y test.
 	if(config.parseOnLoad){
-		domReady(lang.hitch(parser, "parse"));
+		require(["dojo/domReady!"], function(){ parser.parse(); });
 	}
 
 	return parser;
