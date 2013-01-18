@@ -1,5 +1,5 @@
-define(["./_base/kernel", "require", "./has", "./_base/array", "./_base/config", "./_base/lang", "./has!host-browser?./_base/xhr", "./json", "module"],
-	function(dojo, require, has, array, config, lang, xhr, json, module){
+define(["./_base/kernel", "require", "./has", "./_base/array", "./_base/config", "./_base/lang", "./json", "module"],
+	function(dojo, require, has, array, config, lang, json, module){
 
 	// module:
 	//		dojo/i18n
@@ -297,12 +297,6 @@ define(["./_base/kernel", "require", "./has", "./_base/array", "./_base/config",
 				return result == "root" ? "ROOT" : result;
 			},
 
-			isXd = function(mid, contextRequire){
-				return (has("dojo-sync-loader") && has("dojo-v1x-i18n-Api")) ?
-					contextRequire.isXdUrl(require.toUrl(mid + ".js")) :
-					true;
-			},
-
 			preloading = 0,
 
 			preloadWaitQueue = [],
@@ -324,11 +318,7 @@ define(["./_base/kernel", "require", "./has", "./_base/array", "./_base/config",
 				contextRequire = contextRequire || require;
 
 				function doRequire(mid, callback){
-					if(isXd(mid, contextRequire) || guaranteedAmdFormat){
-						contextRequire([mid], callback);
-					}else{
-						syncRequire([mid], callback, contextRequire);
-					}
+					contextRequire([mid], callback);
 				}
 
 				function forEachLocale(locale, func){
@@ -421,66 +411,6 @@ define(["./_base/kernel", "require", "./has", "./_base/array", "./_base/config",
 					+ "}"
 				),
 
-			syncRequire = function(deps, callback, require){
-				var results = [];
-				array.forEach(deps, function(mid){
-					var url = require.toUrl(mid + ".js");
-
-					function load(text){
-						var result = evalBundle(text, checkForLegacyModules, mid, amdValue);
-						if(result===amdValue){
-							// the bundle was an AMD module; re-inject it through the normal AMD path
-							// we gotta do this since it could be an anonymous module and simply evaluating
-							// the text here won't provide the loader with the context to know what
-							// module is being defined()'d. With browser caching, this should be free; further
-							// this entire code path can be circumvented by using the AMD format to begin with
-							results.push(cache[url] = amdValue.result);
-						}else{
-							if(result instanceof Error){
-								console.error("failed to evaluate i18n bundle; url=" + url, result);
-								result = {};
-							}
-							// nls/<locale>/<bundle-name> indicates not the root.
-							results.push(cache[url] = (/nls\/[^\/]+\/[^\/]+$/.test(url) ? result : {root:result, _v1x:1}));
-						}
-					}
-
-					if(cache[url]){
-						results.push(cache[url]);
-					}else{
-						var bundle = require.syncLoadNls(mid);
-						// don't need to check for legacy since syncLoadNls returns a module if the module
-						// (1) was already loaded, or (2) was in the cache. In case 1, if syncRequire is called
-						// from getLocalization --> load, then load will have called checkForLegacyModules() before
-						// calling syncRequire; if syncRequire is called from preloadLocalizations, then we
-						// don't care about checkForLegacyModules() because that will be done when a particular
-						// bundle is actually demanded. In case 2, checkForLegacyModules() is never relevant
-						// because cached modules are always v1.7+ built modules.
-						if(bundle){
-							results.push(bundle);
-						}else{
-							if(!xhr){
-								try{
-									require.getText(url, true, load);
-								}catch(e){
-									results.push(cache[url] = {});
-								}
-							}else{
-								xhr.get({
-									url:url,
-									sync:true,
-									load:load,
-									error:function(){
-										results.push(cache[url] = {});
-									}
-								});
-							}
-						}
-					}
-				});
-				callback && callback.apply(null, results);
-			};
-
 		checkForLegacyModules = function(target){
 			// legacy code may have already loaded [e.g] the raw bundle x/y/z at x.y.z; when true, push into the cache
 			for(var result, names = target.split("/"), object = dojo.global[names[0]], i = 1; object && i<names.length-1; object = object[names[i++]]){}
@@ -503,10 +433,7 @@ define(["./_base/kernel", "require", "./has", "./_base/array", "./_base/config",
 			load(
 				l10nName,
 
-				// isXd() and syncRequire() need a context-require in order to resolve the mid with respect to a reference module.
-				// Since this legacy function does not have the concept of a reference module, resolve with respect to this
-				// dojo/i18n module, which, itself may have been mapped.
-				(!isXd(l10nName, require) ? function(deps, callback){ syncRequire(deps, callback, require); } : require),
+				require,
 
 				function(result_){ result = result_; }
 			);
