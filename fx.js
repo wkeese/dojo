@@ -7,22 +7,12 @@ define([
 	"./_base/fx",
 	"./dom",
 	"./dom-style",
-	"./dom-geometry",
-	"./ready",
-	"require" // for context sensitive loading of Toggler
-], function(lang, Evented, dojo, arrayUtil, aspect, baseFx, dom, domStyle, geom, ready, require){
+	"./dom-geometry"
+], function(lang, Evented, dojo, arrayUtil, aspect, baseFx, dom, domStyle, geom){
 
 	// module:
 	//		dojo/fx
 	
-	// For back-compat, remove in 2.0.
-	if(!dojo.isAsync){
-		ready(0, function(){
-			var requires = ["./fx/Toggler"];
-			require(requires);	// use indirection so modules not rolled into a build
-		});
-	}
-
 	var coreFx = dojo.fx = {
 		// summary:
 		//		Effects library on top of Base animations

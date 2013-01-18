@@ -1,8 +1,8 @@
 define([
 	"../_base/array", "../_base/declare", "../_base/kernel", "../_base/lang",
-	"../dom-class", "../dom-geometry", "../mouse", "../ready", "../topic",
+	"../dom-class", "../dom-geometry", "../mouse", "../topic",
 	"./common", "./Selector", "./Manager"
-], function(array, declare, kernel, lang, domClass, domGeom, mouse, ready, topic,
+], function(array, declare, kernel, lang, domClass, domGeom, mouse, topic,
 			dnd, Selector, Manager){
 
 // module:
@@ -56,14 +56,6 @@ var __SourceArgs = {
 	//		generate text node for drag and drop, true by default
 };
 =====*/
-
-// For back-compat, remove in 2.0.
-if(!kernel.isAsync){
-	ready(0, function(){
-		var requires = ["dojo/dnd/AutoSource", "dojo/dnd/Target"];
-		require(requires);	// use indirection so modules not rolled into a build
-	});
-}
 
 var Source = declare("dojo.dnd.Source", Selector, {
 	// summary:
