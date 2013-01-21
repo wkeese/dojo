@@ -1,5 +1,4 @@
 define([
-	"dojo/tests/_base/loader",
 	"dojo/tests/_base/array",
 	"dojo/tests/_base/Color",
 	"dojo/tests/_base/lang",
