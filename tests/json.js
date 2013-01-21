@@ -52,21 +52,19 @@ define(["doh/main", "../json", "../has"], function(doh, JSON, has){
 		function serializeToJSON(t){ t.is('{"foo":{"name":"value"}}', JSON.stringify({foo:{toJSON:function(key){return {name:"value"}; }}})); }
 	]);
 
-	if(!has("host-rhino")){
-		doh.register("tests.json.circular", [
-			function serializeCircular(t){
-				try{
-					var a = {};
-					a.a = a;
-					console.log("circular: " + JSON.stringify(a));
-				}catch(e){
-					return;
-				}
-				throw new Error("stringify must throw for circular references");
-
+	doh.register("tests.json.circular", [
+		function serializeCircular(t){
+			try{
+				var a = {};
+				a.a = a;
+				console.log("circular: " + JSON.stringify(a));
+			}catch(e){
+				return;
 			}
-		]);
-	}
+			throw new Error("stringify must throw for circular references");
+
+		}
+	]);
 
 var smallDataSet = {
 	prop1: null,

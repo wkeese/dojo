@@ -136,14 +136,8 @@ define(["../has", "./config", "require", "module"], function(has, config, requir
 	=====*/
 
 
-	if(has("host-rhino")){
-		dojo.exit = function(exitcode){
-			quit(exitcode);
-		};
-	}else{
-		dojo.exit = function(){
-		};
-	}
+	dojo.exit = function(){
+	};
 
 	has.add("dojo-guarantee-console",
 		// ensure that console.log, console.warn, etc. are defined

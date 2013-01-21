@@ -10,10 +10,6 @@ define([
 		platformId = './xhr';
 	}else if(has('host-node')){
 		platformId = './node';
-	/* TODO:
-	}else if(has('host-rhino')){
-		platformId = './rhino';
-   */
 	}
 
 	if(!defId){
