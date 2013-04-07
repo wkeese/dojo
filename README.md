@@ -1,31 +1,14 @@
-# dojo
+# dojo without backcompat
 
-**dojo** is the foundation package of the Dojo Toolkit. Sometimes referred to as the “core”, it contains the most
-generally applicable sub-packages and modules. The dojo package covers a wide range of functionality like AJAX, DOM
-manipulation, class-type programming, events, promises, data stores, drag-and-drop and internationalization libraries.
+This is simply a version of the latest code in Dojo's SVN (currently version 1.9) with all the backwards-compatibility
+modules and functions removed, and running against RequireJS.
 
-## Installing
+## License
 
-Installation instructions are available at [dojotoolkit.org/download][download].
+This is licensed under the ["New" BSD License](LICENSE).
 
-## Getting Started
+## Contributing
 
-If you are starting out with Dojo, the following resources are available to you:
+Contributions are welcome in the form of pull requests, but must be covered under the Dojo Foundation CLA.  See
+[CONTRIBUTING.md](CONTRIBUTING.md) for further information.
 
-* [Tutorials][]
-* [Reference Guide][]
-* [API Documentation][]
-* [Community Forum][]
-
-## License and Copyright
-
-The Dojo Toolkit (including this package) is dual licensed under BSD 3-Clause and AFL.  For more information on the
-license please see the [License Information][].  The Dojo Toolkit is Copyright (c) 2005-2013, The Dojo Foundation.  All
-rights reserved.
-
-[download]: http://dojotoolkit.org/download/
-[Tutorials]: http://dojotoolkit.org/documentation/
-[Reference Guide]: http://dojotoolkit.org/reference-guide/
-[API Documentation]: http://dojotoolkit.org/api/
-[Community Forum]: http://dojotoolkit.org/community/
-[License Information]: http://dojotoolkit.org/license
