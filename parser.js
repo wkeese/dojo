@@ -280,12 +280,10 @@ define([
 					jsname = value;
 					break;
 
-				// For the benefit of _Templated
+				// For the benefit of _TemplatedMixin
 				case "data-dojo-attach-point":
-					params.dojoAttachPoint = value;
-					break;
 				case "data-dojo-attach-event":
-					params.dojoAttachEvent = value;
+					params[lcName] = value;
 					break;
 
 				// Special parameter handling needed for IE
