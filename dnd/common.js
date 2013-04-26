@@ -4,14 +4,10 @@ define(["../sniff", "../_base/kernel", "../_base/lang", "../dom"],
 // module:
 //		dojo/dnd/common
 
-var exports = lang.getObject("dojo.dnd", true);
-/*=====
-// TODO: for 2.0, replace line above with this code.
 var exports = {
 	// summary:
 	//		TODOC
 };
-=====*/
 
 exports.getCopyKeyState = function(evt){
 	return evt[has("mac") ? "metaKey" : "ctrlKey"]
