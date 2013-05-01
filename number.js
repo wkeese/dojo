@@ -1,5 +1,5 @@
-define([/*===== "./_base/declare", =====*/ "./_base/lang", "./i18n", "./i18n!./cldr/nls/number", "./string", "./regexp"],
-	function(/*===== declare, =====*/ lang, i18n, nlsNumber, dstring, dregexp){
+define([/*===== "./_base/declare", =====*/ "./_base/lang", "./i18n!./cldr/nls/number", "./string", "./regexp"],
+	function(/*===== declare, =====*/ lang, nlsNumber, dstring, dregexp){
 
 // module:
 //		dojo/number
@@ -8,7 +8,6 @@ var number = {
 	// summary:
 	//		localized formatting and parsing routines for Number
 };
-lang.setObject("dojo.number", number);
 
 /*=====
 number.__FormatOptions = declare(null, {
@@ -45,10 +44,8 @@ number.format = function(/*Number*/ value, /*number.__FormatOptions?*/ options){
 	//		the number to be formatted
 
 	options = lang.mixin({}, options || {});
-	var locale = i18n.normalizeLocale(options.locale),
-		bundle = i18n.getLocalization("dojo.cldr", "number", locale);
-	options.customs = bundle;
-	var pattern = options.pattern || bundle[(options.type || "decimal") + "Format"];
+	options.customs = nlsNumber;
+	var pattern = options.pattern || nlsNumber[(options.type || "decimal") + "Format"];
 	if(isNaN(value) || Math.abs(value) == Infinity){ return null; } // null
 	return number._applyPattern(value, pattern, options); // String
 };
@@ -281,12 +278,10 @@ number.regexp = function(/*number.__RegexpOptions?*/ options){
 
 number._parseInfo = function(/*Object?*/ options){
 	options = options || {};
-	var locale = i18n.normalizeLocale(options.locale),
-		bundle = i18n.getLocalization("dojo.cldr", "number", locale),
-		pattern = options.pattern || bundle[(options.type || "decimal") + "Format"],
+	var pattern = options.pattern || nlsNumber[(options.type || "decimal") + "Format"],
 //TODO: memoize?
-		group = bundle.group,
-		decimal = bundle.decimal,
+		group = nlsNumber.group,
+		decimal = nlsNumber.decimal,
 		factor = 1;
 
 	if(pattern.indexOf('%') != -1){
@@ -296,8 +291,8 @@ number._parseInfo = function(/*Object?*/ options){
 	}else{
 		var isCurrency = pattern.indexOf('\u00a4') != -1;
 		if(isCurrency){
-			group = bundle.currencyGroup || group;
-			decimal = bundle.currencyDecimal || decimal;
+			group = nlsNumber.currencyGroup || group;
+			decimal = nlsNumber.currencyDecimal || decimal;
 		}
 	}
 

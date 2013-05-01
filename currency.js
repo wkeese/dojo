@@ -3,9 +3,9 @@ define([
 	"./_base/lang",
 	/*===== "./_base/declare", =====*/
 	"./number",
-	"./i18n", "./i18n!./cldr/nls/currency",
+	"./i18n!./cldr/nls/currency",
 	"./cldr/monetary"
-], function(darray, lang, /*===== declare, =====*/ dnumber, i18n, nlsCurrency, cldrMonetary){
+], function(darray, lang, /*===== declare, =====*/ dnumber, nlsCurrency, cldrMonetary){
 
 // module:
 //		dojo/currency
@@ -22,21 +22,17 @@ var currency = {
 	//		on the currency type and is not determined by the 'pattern' argument.  The fractional
 	//		portion is optional, by default, and variable length decimals are not supported.
 };
-lang.setObject("dojo.currency", currency);
 
 currency._mixInDefaults = function(options){
 	options = options || {};
 	options.type = "currency";
-
-	// Get locale-dependent currency data, like the symbol
-	var bundle = i18n.getLocalization("dojo.cldr", "currency", options.locale) || {};
 
 	// Mixin locale-independent currency data, like # of places
 	var iso = options.currency;
 	var data = cldrMonetary.getData(iso);
 
 	darray.forEach(["displayName","symbol","group","decimal"], function(prop){
-		data[prop] = bundle[iso+"_"+prop];
+		data[prop] = nlsCurrency[iso+"_"+prop];
 	});
 
 	data.fractional = [true, false];
