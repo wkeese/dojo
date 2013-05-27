@@ -9,6 +9,11 @@ define(["./_base/kernel", "require", "./has", "./_base/array", "./_base/config",
 		1
 	);
 
+	has.add("dojo-v1x-i18n-Api",
+		// if true, define the v1.x i18n functions
+		1
+	);
+
 	var
 		thisModule = dojo.i18n =
 			{
@@ -271,6 +276,9 @@ define(["./_base/kernel", "require", "./has", "./_base/array", "./_base/config",
 				};
 			array.forEach(loadList, function(locale){
 				var target = bundlePathAndName + "/" + locale;
+				if(has("dojo-preload-i18n-Api")){
+					checkForLegacyModules(target);
+				}
 				if(!cache[target]){
 					doLoad(require, bundlePathAndName, bundlePath, bundleName, locale, finish);
 				}else{
@@ -283,7 +291,7 @@ define(["./_base/kernel", "require", "./has", "./_base/array", "./_base/config",
 		var unitTests = thisModule.unitTests = [];
 	}
 
-	if(has("dojo-preload-i18n-Api")){
+	if(has("dojo-preload-i18n-Api") || has("dojo-v1x-i18n-Api")){
 		var normalizeLocale = thisModule.normalizeLocale = function(locale){
 				var result = locale ? locale.toLowerCase() : dojo.locale;
 				return result == "root" ? "ROOT" : result;
@@ -355,7 +363,111 @@ define(["./_base/kernel", "require", "./has", "./_base/array", "./_base/config",
 					preloadWaitQueue.push([id, require, load]);
 				}
 				return preloading;
+			},
+
+			checkForLegacyModules = function()
+				{};
+	}
+
+	if(has("dojo-v1x-i18n-Api")){
+		// this code path assumes the dojo loader and won't work with a standard AMD loader
+		var amdValue = {},
+			evalBundle =
+				// use the function ctor to keep the minifiers away (also come close to global scope, but this is secondary)
+				new Function(
+					"__bundle",				   // the bundle to evalutate
+					"__checkForLegacyModules", // a function that checks if __bundle defined __mid in the global space
+					"__mid",				   // the mid that __bundle is intended to define
+					"__amdValue",
+
+					// returns one of:
+					//		1 => the bundle was an AMD bundle
+					//		a legacy bundle object that is the value of __mid
+					//		instance of Error => could not figure out how to evaluate bundle
+
+					  // used to detect when __bundle calls define
+					  "var define = function(mid, factory){define.called = 1; __amdValue.result = factory || mid;},"
+					+ "	   require = function(){define.called = 1;};"
+
+					+ "try{"
+					+		"define.called = 0;"
+					+		"eval(__bundle);"
+					+		"if(define.called==1)"
+								// bundle called define; therefore signal it's an AMD bundle
+					+			"return __amdValue;"
+
+					+		"if((__checkForLegacyModules = __checkForLegacyModules(__mid)))"
+								// bundle was probably a v1.6- built NLS flattened NLS bundle that defined __mid in the global space
+					+			"return __checkForLegacyModules;"
+
+					+ "}catch(e){}"
+					// evaulating the bundle was *neither* an AMD *nor* a legacy flattened bundle
+					// either way, re-eval *after* surrounding with parentheses
+
+					+ "try{"
+					+		"return eval('('+__bundle+')');"
+					+ "}catch(e){"
+					+		"return e;"
+					+ "}"
+				),
+
+		checkForLegacyModules = function(target){
+			// legacy code may have already loaded [e.g] the raw bundle x/y/z at x.y.z; when true, push into the cache
+			for(var result, names = target.split("/"), object = dojo.global[names[0]], i = 1; object && i<names.length-1; object = object[names[i++]]){}
+			if(object){
+				result = object[names[i]];
+				if(!result){
+					// fallback for incorrect bundle build of 1.6
+					result = object[names[i].replace(/-/g,"_")];
+				}
+				if(result){
+					cache[target] = result;
+				}
 			}
+			return result;
+		};
+
+		thisModule.getLocalization = function(moduleName, bundleName, locale){
+			var result,
+				l10nName = getBundleName(moduleName, bundleName, locale);
+			load(
+				l10nName,
+
+				require,
+
+				function(result_){ result = result_; }
+			);
+			return result;
+		};
+
+		if(has("dojo-unit-tests")){
+			unitTests.push(function(doh){
+				doh.register("tests.i18n.unit", function(t){
+					var check;
+
+					check = evalBundle("{prop:1}", checkForLegacyModules, "nonsense", amdValue);
+					t.is({prop:1}, check); t.is(undefined, check[1]);
+
+					check = evalBundle("({prop:1})", checkForLegacyModules, "nonsense", amdValue);
+					t.is({prop:1}, check); t.is(undefined, check[1]);
+
+					check = evalBundle("{'prop-x':1}", checkForLegacyModules, "nonsense", amdValue);
+					t.is({'prop-x':1}, check); t.is(undefined, check[1]);
+
+					check = evalBundle("({'prop-x':1})", checkForLegacyModules, "nonsense", amdValue);
+					t.is({'prop-x':1}, check); t.is(undefined, check[1]);
+
+					check = evalBundle("define({'prop-x':1})", checkForLegacyModules, "nonsense", amdValue);
+					t.is(amdValue, check); t.is({'prop-x':1}, amdValue.result);
+
+					check = evalBundle("define('some/module', {'prop-x':1})", checkForLegacyModules, "nonsense", amdValue);
+					t.is(amdValue, check); t.is({'prop-x':1}, amdValue.result);
+
+					check = evalBundle("this is total nonsense and should throw an error", checkForLegacyModules, "nonsense", amdValue);
+					t.is(check instanceof Error, true);
+				});
+			});
+		}
 	}
 
 	return lang.mixin(thisModule, {

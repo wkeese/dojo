@@ -4,10 +4,12 @@ define([
 	"../date",
 	/*===== "../_base/declare", =====*/
 	"../cldr/supplemental",
+	"../i18n",
 	"../regexp",
 	"../string",
-	"../i18n!../cldr/nls/gregorian"
-], function(lang, array, date, /*===== declare, =====*/ supplemental, regexp, string, nlsGregorian){
+	"../i18n!../cldr/nls/gregorian",
+	"module"
+], function(lang, array, date, /*===== declare, =====*/ supplemental, i18n, regexp, string, gregorian, module){
 
 // module:
 //		dojo/date/locale
@@ -16,6 +18,7 @@ var exports = {
 	// summary:
 	//		This modules defines dojo/date/locale, localization methods for Date.
 };
+lang.setObject(module.id.replace(/\//g, "."), exports);
 
 // Localization methods for Date.   Honor local customs using locale-dependent dojo.cldr data.
 
@@ -237,23 +240,25 @@ exports.format = function(/*Date*/ dateObject, /*__FormatOptions?*/ options){
 
 	options = options || {};
 
-	var formatLength = options.formatLength || 'short',
+	var locale = i18n.normalizeLocale(options.locale),
+		formatLength = options.formatLength || 'short',
+		bundle = exports._getGregorianBundle(locale),
 		str = [],
-		sauce = lang.hitch(this, formatPattern, dateObject, nlsGregorian, options);
+		sauce = lang.hitch(this, formatPattern, dateObject, bundle, options);
 	if(options.selector == "year"){
-		return _processPattern(nlsGregorian["dateFormatItem-yyyy"] || "yyyy", sauce);
+		return _processPattern(bundle["dateFormatItem-yyyy"] || "yyyy", sauce);
 	}
 	var pattern;
 	if(options.selector != "date"){
-		pattern = options.timePattern || nlsGregorian["timeFormat-"+formatLength];
+		pattern = options.timePattern || bundle["timeFormat-"+formatLength];
 		if(pattern){str.push(_processPattern(pattern, sauce));}
 	}
 	if(options.selector != "time"){
-		pattern = options.datePattern || nlsGregorian["dateFormat-"+formatLength];
+		pattern = options.datePattern || bundle["dateFormat-"+formatLength];
 		if(pattern){str.push(_processPattern(pattern, sauce));}
 	}
 
-	return str.length == 1 ? str[0] : nlsGregorian["dateTimeFormat-"+formatLength].replace(/\'/g,'').replace(/\{(\d+)\}/g,
+	return str.length == 1 ? str[0] : bundle["dateTimeFormat-"+formatLength].replace(/\'/g,'').replace(/\{(\d+)\}/g,
 		function(match, key){ return str[key]; }); // String
 };
 
@@ -266,22 +271,24 @@ exports.regexp = function(/*__FormatOptions?*/ options){
 
 exports._parseInfo = function(/*__FormatOptions?*/ options){
 	options = options || {};
-	var formatLength = options.formatLength || 'short',
-		datePattern = options.datePattern || nlsGregorian["dateFormat-" + formatLength],
-		timePattern = options.timePattern || nlsGregorian["timeFormat-" + formatLength],
+	var locale = i18n.normalizeLocale(options.locale),
+		bundle = exports._getGregorianBundle(locale),
+		formatLength = options.formatLength || 'short',
+		datePattern = options.datePattern || bundle["dateFormat-" + formatLength],
+		timePattern = options.timePattern || bundle["timeFormat-" + formatLength],
 		pattern;
 	if(options.selector == 'date'){
 		pattern = datePattern;
 	}else if(options.selector == 'time'){
 		pattern = timePattern;
 	}else{
-		pattern = nlsGregorian["dateTimeFormat-"+formatLength].replace(/\{(\d+)\}/g,
+		pattern = bundle["dateTimeFormat-"+formatLength].replace(/\{(\d+)\}/g,
 			function(match, key){ return [timePattern, datePattern][key]; });
 	}
 
 	var tokens = [],
-		re = _processPattern(pattern, lang.hitch(this, _buildDateTimeRE, tokens, nlsGregorian, options));
-	return {regexp: re, tokens: tokens, bundle: nlsGregorian};
+		re = _processPattern(pattern, lang.hitch(this, _buildDateTimeRE, tokens, bundle, options));
+	return {regexp: re, tokens: tokens, bundle: bundle};
 };
 
 exports.parse = function(/*String*/ value, /*__FormatOptions?*/ options){
@@ -594,6 +601,33 @@ function _buildDateTimeRE(tokens, bundle, options, pattern){
 	}).replace(/[\xa0 ]/g, "[\\s\\xa0]"); // normalize whitespace.  Need explicit handling of \xa0 for IE.
 }
 
+var _customFormats = [];
+exports.addCustomFormats = function(/*String*/ packageName, /*String*/ bundleName){
+	// summary:
+	//		Add a reference to a bundle containing localized custom formats to be
+	//		used by date/time formatting and parsing routines.
+	//
+	// description:
+	//		The user may add custom localized formats where the bundle has properties following the
+	//		same naming convention used by dojo.cldr: `dateFormat-xxxx` / `timeFormat-xxxx`
+	//		The pattern string should match the format used by the CLDR.
+	//		See dojo/date/locale.format() for details.
+	//		The resources must be loaded by dojo.requireLocalization() prior to use
+
+	_customFormats.push({pkg:packageName,name:bundleName});
+};
+
+exports._getGregorianBundle = function(/*String*/ locale){
+	var gregorian = {};
+	array.forEach(_customFormats, function(desc){
+		var bundle = i18n.getLocalization(desc.pkg, desc.name, locale);
+		gregorian = lang.mixin(gregorian, bundle);
+	}, this);
+	return gregorian; /*Object*/
+};
+
+exports.addCustomFormats(module.id.replace(/\/date\/locale$/, ".cldr"),"gregorian");
+
 exports.getNames = function(/*String*/ item, /*String*/ type, /*String?*/ context, /*String?*/ locale){
 	// summary:
 	//		Used to get localized strings from dojo.cldr for day or month names.
@@ -608,10 +642,11 @@ exports.getNames = function(/*String*/ item, /*String*/ type, /*String?*/ contex
 	//	override locale used to find the names
 
 	var label,
+		lookup = exports._getGregorianBundle(locale),
 		props = [item, context, type];
 	if(context == 'standAlone'){
 		var key = props.join('-');
-		label = nlsGregorian[key];
+		label = lookup[key];
 		// Fall back to 'format' flavor of name
 		if(label[0] == 1){ label = undefined; } // kludge, in the absence of real aliasing support in dojo.cldr
 	}

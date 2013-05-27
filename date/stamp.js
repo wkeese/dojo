@@ -1,4 +1,4 @@
-define(["../_base/array"], function(array){
+define(["../_base/lang", "../_base/array"], function(lang, array){
 
 // module:
 //		dojo/date/stamp
@@ -7,6 +7,7 @@ var stamp = {
 	// summary:
 	//		TODOC
 };
+lang.setObject("dojo.date.stamp", stamp);
 
 // Methods to convert dates to or from a wire (string) format using well-known conventions
 
