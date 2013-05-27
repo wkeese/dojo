@@ -428,6 +428,11 @@ define(["./_base/kernel", "require", "./has", "./_base/array", "./_base/config",
 		};
 
 		thisModule.getLocalization = function(moduleName, bundleName, locale){
+			// HACK: this API is expected to work synchronously but there's no longer a sync XHR api to back it up,
+			// so it doesn't work except when locale == "".  In that case it tends to work because the root bundle
+			// has already been loaded via a require of dojo/i18n!...
+			locale = "";
+
 			var result,
 				l10nName = getBundleName(moduleName, bundleName, locale);
 			load(
