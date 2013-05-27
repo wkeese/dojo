@@ -3,6 +3,12 @@
 This is simply a version of the latest code in Dojo's SVN (currently version 1.9) with all the backwards-compatibility
 modules and functions removed, and running against RequireJS.
 
+To check out:
+
+    $ git clone git@github.com:wkeese/dojo.git
+    $ git checkout nodep
+    $ git submodule update --init
+
 ## License
 
 This is licensed under the ["New" BSD License](LICENSE).
