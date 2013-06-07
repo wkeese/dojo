@@ -166,7 +166,7 @@ define(["exports", "./_base/kernel", "./sniff", "./_base/lang", "./dom", "./dom-
 			}
 			// ensure that event objects are normalized, etc.
 			if(value){
-				evtHdlrMap[attrId][propName] = on(node, propName, value);
+				_evtHdlrMap[attrId][propName] = on(node, propName, value);
 			}else{
 				node[propName] = null;
 			}
